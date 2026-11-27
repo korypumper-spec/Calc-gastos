@@ -1,24 +1,30 @@
-name: Android CI - Calculadora de Gastos
+name: Android CI - Mi Bolsillo Inteligente
 
 on:
   push:
-    branches: [ main, master, develop ]
+    branches: [main, master, develop]
   pull_request:
-    branches: [ main, master, develop ]
+    branches: [main, master, develop]
+  workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  build-and-validate:
-    name: Validar, probar y compilar Android APK/AAB
+  android:
+    name: Validar y compilar APK/AAB
     runs-on: ubuntu-latest
+    timeout-minutes: 45
 
     steps:
-      - name: Descargar repositorio
+      - name: Descargar codigo
         uses: actions/checkout@v4
 
-      - name: Configurar Java 17 (Temurin)
+      - name: Configurar Java 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -27,30 +33,39 @@ jobs:
       - name: Configurar Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Instalar componentes requeridos del Android SDK
+      - name: Instalar SDK requerido
         run: |
           yes | sdkmanager --licenses >/dev/null || true
           sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
 
-      - name: Configurar Gradle 8.9 y caché
+      # Este repositorio no contiene gradle-wrapper.jar.
+      # Se instala Gradle 8.9 y se usa el comando gradle directamente.
+      - name: Instalar Gradle 8.9
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
           cache-read-only: false
 
-      - name: Asegurar permisos de ejecución de gradlew
-        run: chmod +x gradlew
+      - name: Comprobar configuracion
+        run: |
+          set -euxo pipefail
+          test -f settings.gradle.kts
+          test -f build.gradle.kts
+          test -f gradle/libs.versions.toml
+          test -f app/build.gradle.kts
+          test -f app/src/main/AndroidManifest.xml
+          gradle --version
 
       - name: Limpiar y ejecutar pruebas unitarias
-        run: gradle clean testDebugUnitTest
+        run: gradle --no-daemon --stacktrace clean testDebugUnitTest
 
-      - name: Ejecutar análisis estático Lint
-        run: gradle lintDebug
+      - name: Ejecutar Lint
+        run: gradle --no-daemon --stacktrace lintDebug
 
-      - name: Compilar APK de depuración
-        run: gradle assembleDebug
+      - name: Compilar APK Debug
+        run: gradle --no-daemon --stacktrace assembleDebug
 
-      - name: Compilar APK de lanzamiento
+      - name: Compilar APK Release
         env:
           KEYSTORE_FILE: ${{ secrets.ANDROID_KEYSTORE_PATH }}
           KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
@@ -58,9 +73,9 @@ jobs:
           KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
           ADMOB_APP_ID_RELEASE: ${{ secrets.ADMOB_APP_ID_RELEASE }}
           ADMOB_BANNER_ID_RELEASE: ${{ secrets.ADMOB_BANNER_ID_RELEASE }}
-        run: gradle assembleRelease
+        run: gradle --no-daemon --stacktrace assembleRelease
 
-      - name: Generar Android App Bundle (.aab)
+      - name: Generar Android App Bundle
         env:
           KEYSTORE_FILE: ${{ secrets.ANDROID_KEYSTORE_PATH }}
           KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
@@ -68,16 +83,18 @@ jobs:
           KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
           ADMOB_APP_ID_RELEASE: ${{ secrets.ADMOB_APP_ID_RELEASE }}
           ADMOB_BANNER_ID_RELEASE: ${{ secrets.ADMOB_BANNER_ID_RELEASE }}
-        run: gradle bundleRelease
+        run: gradle --no-daemon --stacktrace bundleRelease
 
-      - name: Publicar artefactos compilados
+      - name: Subir APK, AAB y reportes
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: mi-bolsillo-inteligente-artefactos
+          name: mi-bolsillo-inteligente-android
           path: |
             app/build/outputs/apk/debug/*.apk
             app/build/outputs/apk/release/*.apk
             app/build/outputs/bundle/release/*.aab
             app/build/reports/tests/testDebugUnitTest/
             app/build/reports/lint-results-debug.html
-          if-no-files-found: error
+          if-no-files-found: warn
+          retention-days: 14
