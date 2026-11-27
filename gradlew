@@ -6,7 +6,7 @@
 
 APP_HOME=$( cd "${0%/*}" && pwd -P ) || exit
 
-DEFAULT_JVM_OPTS='"-Xmx64m" "-Xms64m"'
+DEFAULT_JVM_OPTS="-Xmx64m -Xms64m"
 MAX_FD=maximum
 
 warn () {
@@ -39,11 +39,8 @@ else
 fi
 
 if [ ! -f "$CLASSPATH" ] ; then
-    if command -v gradle >/dev/null 2>&1 ; then
-        exec gradle "$@"
-    else
-        die "ERROR: gradle-wrapper.jar not found. Open in Android Studio or run 'gradle wrapper' first."
-    fi
+    die "ERROR: gradle-wrapper.jar not found at $CLASSPATH"
 fi
 
+# shellcheck disable=SC2086
 exec "$JAVACMD" $DEFAULT_JVM_OPTS $JAVA_OPTS $GRADLE_OPTS -classpath "$CLASSPATH" org.gradle.wrapper.GradleWrapperMain "$@"

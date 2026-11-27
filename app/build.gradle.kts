@@ -8,16 +8,35 @@ plugins {
 }
 
 val admobAppIdRelease = System.getenv("ADMOB_APP_ID_RELEASE")
-    ?.takeIf { it.isNotBlank() }
+    ?.trim()
+    ?.takeIf { it.isNotEmpty() }
     ?: "ca-app-pub-3940256099942544~3347511713"
 
 val admobBannerIdRelease = System.getenv("ADMOB_BANNER_ID_RELEASE")
-    ?.takeIf { it.isNotBlank() }
+    ?.trim()
+    ?.replace("\"", "")
+    ?.takeIf { it.isNotEmpty() }
     ?: ""
+
+val releaseKeystoreFile = System.getenv("KEYSTORE_FILE")
+    ?.trim()
+    ?.takeIf { it.isNotEmpty() }
+    ?.let(::File)
+    ?.takeIf { it.isFile }
+
+val releaseStorePassword = System.getenv("KEYSTORE_PASSWORD")?.takeIf { it.isNotBlank() }
+val releaseKeyAlias = System.getenv("KEY_ALIAS")?.takeIf { it.isNotBlank() }
+val releaseKeyPassword = System.getenv("KEY_PASSWORD")?.takeIf { it.isNotBlank() }
+
+val hasReleaseSigning = releaseKeystoreFile != null &&
+    releaseStorePassword != null &&
+    releaseKeyAlias != null &&
+    releaseKeyPassword != null
 
 android {
     namespace = "com.mibolsillointeligente.app"
     compileSdk = 35
+    buildToolsVersion = "35.0.0"
 
     defaultConfig {
         applicationId = "com.mibolsillointeligente.app"
@@ -33,13 +52,12 @@ android {
     }
 
     signingConfigs {
-        create("release") {
-            val keystorePath = System.getenv("KEYSTORE_FILE")
-            if (!keystorePath.isNullOrBlank() && File(keystorePath).exists()) {
-                storeFile = File(keystorePath)
-                storePassword = System.getenv("KEYSTORE_PASSWORD") ?: ""
-                keyAlias = System.getenv("KEY_ALIAS") ?: ""
-                keyPassword = System.getenv("KEY_PASSWORD") ?: ""
+        if (hasReleaseSigning) {
+            create("release") {
+                storeFile = releaseKeystoreFile
+                storePassword = releaseStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
             }
         }
     }
@@ -59,9 +77,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            val hasSigning = !System.getenv("KEYSTORE_FILE").isNullOrBlank() &&
-                File(System.getenv("KEYSTORE_FILE")).exists()
-            if (hasSigning) {
+            if (hasReleaseSigning) {
                 signingConfig = signingConfigs.getByName("release")
             }
             manifestPlaceholders["admobAppId"] = admobAppIdRelease

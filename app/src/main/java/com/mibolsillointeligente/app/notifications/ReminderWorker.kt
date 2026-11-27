@@ -80,7 +80,12 @@ class ReminderWorker(
                 .setAutoCancel(true)
                 .build()
 
-            if (ReminderNotificationHelper.hasNotificationPermission(applicationContext)) {
+            val canPostNotification = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+                ContextCompat.checkSelfPermission(
+                    applicationContext,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) == PackageManager.PERMISSION_GRANTED
+            if (canPostNotification) {
                 NotificationManagerCompat.from(applicationContext).notify(1001, notification)
             }
         }
