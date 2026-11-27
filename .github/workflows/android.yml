@@ -30,36 +30,15 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Configurar Android SDK y componentes (API 35 / Build Tools 35.0.0)
+      - name: Configurar Android SDK
+  uses: android-actions/setup-android@v3
+
+      - name: Instalar componentes Android
         run: |
-          set -euxo pipefail
-          SDK_DIR="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
-          if [ ! -d "$SDK_DIR" ]; then
-            SDK_DIR="$HOME/android-sdk"
-            mkdir -p "$SDK_DIR"
-          fi
-
-          if [ ! -x "$SDK_DIR/cmdline-tools/latest/bin/sdkmanager" ] && ! command -v sdkmanager >/dev/null 2>&1; then
-            TMP_ZIP="$RUNNER_TEMP/cmdline-tools.zip"
-            curl -fSL "https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip" -o "$TMP_ZIP"
-            mkdir -p "$SDK_DIR/cmdline-tools"
-            unzip -q "$TMP_ZIP" -d "$SDK_DIR/cmdline-tools"
-            mv "$SDK_DIR/cmdline-tools/cmdline-tools" "$SDK_DIR/cmdline-tools/latest"
-            rm -f "$TMP_ZIP"
-          fi
-
-          SDKMANAGER_BIN="sdkmanager"
-          if [ -x "$SDK_DIR/cmdline-tools/latest/bin/sdkmanager" ]; then
-            SDKMANAGER_BIN="$SDK_DIR/cmdline-tools/latest/bin/sdkmanager"
-          fi
-
-          echo "ANDROID_HOME=$SDK_DIR" >> "$GITHUB_ENV"
-          echo "ANDROID_SDK_ROOT=$SDK_DIR" >> "$GITHUB_ENV"
-          echo "$SDK_DIR/platform-tools" >> "$GITHUB_PATH"
-          echo "$SDK_DIR/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
-
-          yes | "$SDKMANAGER_BIN" --sdk_root="$SDK_DIR" --licenses >/dev/null || true
-          "$SDKMANAGER_BIN" --sdk_root="$SDK_DIR" "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+          sdkmanager --install \
+            "platform-tools" \
+            "platforms;android-35" \
+            "build-tools;35.0.0"
 
       - name: Configurar caché de Gradle
         uses: gradle/actions/setup-gradle@v4
