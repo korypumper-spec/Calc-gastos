@@ -83,6 +83,9 @@ jobs:
       - name: Limpiar compilaciones previas
         run: ./gradlew --no-daemon --stacktrace clean
 
+      - name: Compilar código Kotlin (Debug)
+        run: ./gradlew --no-daemon --stacktrace :app:compileDebugKotlin
+
       - name: Ejecutar pruebas unitarias (Debug)
         run: ./gradlew --no-daemon --stacktrace testDebugUnitTest
 
