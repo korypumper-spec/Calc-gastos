@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Billetera estilizada minimalista -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M28,36 C28,32.69 30.69,30 34,30 L70,30 C73.31,30 76,32.69 76,36 L76,42 L34,42 C30.69,42 28,39.31 28,36 Z"
+        android:fillAlpha="0.88" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M26,40 C26,37.79 27.79,36 30,36 L78,36 C80.21,36 82,37.79 82,40 L82,72 C82,75.31 79.31,78 76,78 L32,78 C28.69,78 26,75.31 26,72 Z" />
+    <!-- Broche de cartera verde claro -->
+    <path
+        android:fillColor="#66BB6A"
+        android:pathData="M64,51 L82,51 L82,63 L64,63 C60.69,63 58,60.31 58,57 C58,53.69 60.69,51 64,51 Z" />
+    <path
+        android:fillColor="#1B5E20"
+        android:pathData="M64,54.5 A2.5,2.5 0 1,1 63.99,54.5 Z" />
+    <!-- Barra de progreso / crecimiento financiero -->
+    <path
+        android:fillColor="#4CAF50"
+        android:pathData="M34,66 L34,58 L39,58 L39,66 Z M42,66 L42,53 L47,53 L47,66 Z M50,66 L50,47 L55,47 L55,66 Z" />
+</vector>

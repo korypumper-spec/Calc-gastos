@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Calculadora de Gastos</string>
+    <string name="ad_disclosure_label">Anuncio</string>
+    <string name="nav_home">Inicio</string>
+    <string name="nav_movements">Movimientos</string>
+    <string name="nav_budget">Presupuesto</string>
+    <string name="nav_savings">Ahorro</string>
+    <string name="nav_profile">Perfil</string>
+    <string name="biometric_title">Desbloquear Calculadora de Gastos</string>
+    <string name="biometric_subtitle">Confirma tu identidad para acceder a tus finanzas personales</string>
+    <string name="notification_channel_name">Recordatorios financieros</string>
+    <string name="notification_channel_desc">Avisos locales sobre pagos próximos, límites de presupuesto y metas de ahorro</string>
+</resources>

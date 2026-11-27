@@ -1,0 +1,83 @@
+name: Android CI - Calculadora de Gastos
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-validate:
+    name: Validar, probar y compilar Android APK/AAB
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Java 17 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Configurar Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Instalar componentes requeridos del Android SDK
+        run: |
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Configurar Gradle 8.9 y caché
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+          cache-read-only: false
+
+      - name: Asegurar permisos de ejecución de gradlew
+        run: chmod +x gradlew
+
+      - name: Limpiar y ejecutar pruebas unitarias
+        run: gradle clean testDebugUnitTest
+
+      - name: Ejecutar análisis estático Lint
+        run: gradle lintDebug
+
+      - name: Compilar APK de depuración
+        run: gradle assembleDebug
+
+      - name: Compilar APK de lanzamiento
+        env:
+          KEYSTORE_FILE: ${{ secrets.ANDROID_KEYSTORE_PATH }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          ADMOB_APP_ID_RELEASE: ${{ secrets.ADMOB_APP_ID_RELEASE }}
+          ADMOB_BANNER_ID_RELEASE: ${{ secrets.ADMOB_BANNER_ID_RELEASE }}
+        run: gradle assembleRelease
+
+      - name: Generar Android App Bundle (.aab)
+        env:
+          KEYSTORE_FILE: ${{ secrets.ANDROID_KEYSTORE_PATH }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          ADMOB_APP_ID_RELEASE: ${{ secrets.ADMOB_APP_ID_RELEASE }}
+          ADMOB_BANNER_ID_RELEASE: ${{ secrets.ADMOB_BANNER_ID_RELEASE }}
+        run: gradle bundleRelease
+
+      - name: Publicar artefactos compilados
+        uses: actions/upload-artifact@v4
+        with:
+          name: mi-bolsillo-inteligente-artefactos
+          path: |
+            app/build/outputs/apk/debug/*.apk
+            app/build/outputs/apk/release/*.apk
+            app/build/outputs/bundle/release/*.aab
+            app/build/reports/tests/testDebugUnitTest/
+            app/build/reports/lint-results-debug.html
+          if-no-files-found: error

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.MiBolsillo.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">#FFFFFF</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_artwork</item>
+        <item name="postSplashScreenTheme">@style/Theme.MiBolsillo</item>
+    </style>
+
+    <style name="Theme.MiBolsillo" parent="Theme.Material3.DayNight.NoActionBar" />
+</resources>
