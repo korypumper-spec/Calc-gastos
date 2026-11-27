@@ -235,7 +235,7 @@ object FinanceCalculator {
         annualInterestRatePercent: BigDecimal
     ): DebtPayoffSimulation {
         val cleanBalance = remainingBalance.max(BigDecimal.ZERO).setScale(2, RoundingMode.HALF_EVEN)
-        if (cleanBalance == BigDecimal.ZERO) {
+        if (cleanBalance.compareTo(BigDecimal.ZERO) == 0) {
             return DebtPayoffSimulation(
                 isPayoffPossible = true,
                 estimatedMonths = 0,
@@ -281,7 +281,7 @@ object FinanceCalculator {
             months++
         }
 
-        val completed = balance == BigDecimal.ZERO
+        val completed = balance.compareTo(BigDecimal.ZERO) == 0
         return DebtPayoffSimulation(
             isPayoffPossible = completed,
             estimatedMonths = if (completed) months else 0,
